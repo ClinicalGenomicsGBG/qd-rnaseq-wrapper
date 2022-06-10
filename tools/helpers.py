@@ -87,21 +87,32 @@ def sanitize_fastqdir(fastqdir: str):
 
 
 def build_rnaseq_command(
-    config, outdir: str, ss_path: str, testrun=False, save_reference=False
+    config, outdir: str, logdir: str, ss_path: str, testrun=False, save_reference=False
 ) -> list:
     """
     Create a list with the nextflow commands to send to subprocess
 
     :param config: configparser object with configurations
     :param outdir: Path to output directory
+    :param logdir: Path to directory to store logs
     :param ss_path: Path to samplesheet.csv
     :param: testrun: Set to true to run test data
     :param: save_reference: Set to save the downloaded reference genomes in output dir
     :return: List of list with all components of the command
     """
     rnaseq_command = ["nextflow"]
+
+    # Place of logs
+    rnaseq_command.append("-log")
+    rnaseq_command.append(os.path.join(logdir, "rnaseq", "rnaseq.log"))
+
     # Path to main.nf
+    rnaseq_command.append("run")
     rnaseq_command.append(config.get("nextflow", "rnaseq"))
+
+    # Execution report
+    rnaseq_command.append("-with-report")
+    rnaseq_command.append(os.path.join(logdir, "rnaseq", "rnaseq-execution.html"))
 
     # If custom config, use it
     if config.get("nextflow", "custom_config"):
@@ -110,7 +121,11 @@ def build_rnaseq_command(
 
     # Profile to use
     rnaseq_command.append("-profile")
-    rnaseq_command.append(config.get("nextflow", "profile"))
+    if testrun:
+        rnaseq_command.append(config.get("nextflow", "test_profile"))
+    else:
+        rnaseq_command.append(config.get("nextflow", "profile"))
+
 
     # Pre-downloaded references, or download from iGenomes
     if config.has_section("rnaseq-references") and not save_reference:
@@ -122,8 +137,9 @@ def build_rnaseq_command(
         rnaseq_command.append(config.get("nextflow", "genome"))
 
     # Input samplesheet.csv
-    rnaseq_command.append("--input")
-    rnaseq_command.append(ss_path)
+    if not testrun:
+        rnaseq_command.append("--input")
+        rnaseq_command.append(ss_path)
 
     # Outdir
     rnaseq_command.append("--outdir")
@@ -132,34 +148,34 @@ def build_rnaseq_command(
     if save_reference:
         rnaseq_command.append("--save_reference")
 
-    if testrun:
-        return [
-            "nextflow",
-            config.get("nextflow", "rnaseq"),
-            "-profile",
-            "singularity,byss,test",
-            "-c",
-            "/apps/bio/repos/nf-core-configs/conf/medair.config",
-            "--outdir",
-            os.path.join(config.get("nextflow", "test_outdir"), "rnaseq"),
-        ]
-    else:
-        return rnaseq_command
+    return rnaseq_command
 
-
-def build_rnafusion_command(config, outdir: str, ss_path: str, testrun=False) -> list:
+def build_rnafusion_command(config, outdir: str, logdir: str, ss_path: str, testrun=False) -> list:
     """
     Create a list with the nextflow commands to send to subprocess
 
     :param config: configparser object with configurations
     :param outdir: Path to output directory
+    :param logdir: Path to directory to store logs
     :param ss_path: Path to samplesheet.csv
     :param: testrun: Set to true to run test data
     :return: List of list with all components of the command
     """
     rnafusion_command = ["nextflow"]
+
+    # Place of logs
+    rnafusion_command.append("-log")
+    rnafusion_command.append(os.path.join(logdir, "rnafusion", "rnafusion.log"))
+
     # Path to main.nf
+    rnafusion_command.append("run")
     rnafusion_command.append(config.get("nextflow", "rnafusion"))
+
+    # Execution report
+    rnafusion_command.append("-with-report")
+    rnafusion_command.append(
+        os.path.join(logdir, "rnafusion", "rnafusion-execution.html")
+    )
 
     # If custom config, use it
     if config.get("nextflow", "custom_config"):
@@ -168,7 +184,10 @@ def build_rnafusion_command(config, outdir: str, ss_path: str, testrun=False) ->
 
     # Profile to use
     rnafusion_command.append("-profile")
-    rnafusion_command.append(config.get("nextflow", "profile"))
+    if testrun:
+        rnafusion_command.append(config.get("nextflow", "test_profile"))
+    else:
+        rnafusion_command.append(config.get("nextflow", "profile"))
 
     # Run alla tools
     rnafusion_command.append("--all")
@@ -178,25 +197,12 @@ def build_rnafusion_command(config, outdir: str, ss_path: str, testrun=False) ->
     rnafusion_command.append(config.get("nextflow", "dependencies_fusion"))
 
     # Input samplesheet.csv
-    rnafusion_command.append("--input")
-    rnafusion_command.append(ss_path)
+    if not testrun:
+        rnafusion_command.append("--input")
+        rnafusion_command.append(ss_path)
 
     # Outdir
     rnafusion_command.append("--outdir")
     rnafusion_command.append(os.path.join(outdir, "rnafusion"))
 
-    if testrun:
-        return [
-            "nextflow",
-            config.get("nextflow", "rnafusion"),
-            "-c",
-            "/apps/bio/repos/nf-core-configs/conf/medair.config",
-            "-profile",
-            "singularity,byss,test",
-            "--outdir",
-            config.get("nextflow", "test_outdir"),
-            "--genomes_base",
-            os.path.join(config.get("nextflow", "dependencies_fusion")),
-        ]
-    else:
-        return rnafusion_command
+    return rnafusion_command
