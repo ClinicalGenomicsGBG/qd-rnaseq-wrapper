@@ -4,3 +4,7 @@ __pycache__/
 
 ## Conda env files
 conda-env/qd-rnaseq/
+
+## Nextflow
+.nextflow*
+work/
