@@ -15,9 +15,7 @@ from tools.helpers import (
 
 
 @click.command()
-@click.option(
-    "--fastqdir", required=True, help="Path to input directory of fastq files"
-)
+@click.option("--fastqdir", required=True, help="Path to input directory of fastq files")
 @click.option("--outdir", required=True, help="Path to output directory")
 @click.option("--strandedness", default="reverse", help="Strandedness of seq libraries")
 @click.option("--testrun", is_flag=True, help="Run with nf-core test data")
@@ -27,9 +25,12 @@ from tools.helpers import (
 def main(fastqdir, outdir, strandedness, testrun, skip_rnaseq, skip_rnafusion, save_reference):
     # Set up the logger function
     now = datetime.datetime.now()
-    logfile = os.path.join(outdir, "QD-rnaseq" + now.strftime("%y%m%d_%H%M%S") + ".log")
-    # logger = setup_logger("qd-rnaseq", logfile)
-    logger = setup_logger("qd-rnaseq")  ## TODO, remove to enable logpath
+    logdir = os.path.join(outdir, "logs")
+    os.makedirs(logdir, exist_ok=True)
+    logfile = os.path.join(
+        logdir, "QD-rnaseq-wrapper_" + now.strftime("%y%m%d_%H%M%S") + ".log"
+    )
+    logger = setup_logger("qd-rnaseq", logfile)
     logger.info("Starting the RNAseq pipepline wrapper.")
 
     # Read in the config
@@ -56,25 +57,30 @@ def main(fastqdir, outdir, strandedness, testrun, skip_rnaseq, skip_rnafusion, s
     # Set up the threading
     def call_script(args):
         subprocess.call(args)
+
     threads = []
 
     # Build the rnaseq command and add to threads
     if not skip_rnaseq:
         logger.info("Starting the nf-core/rnaseq pipeline")
-        rnaseq_command = build_rnaseq_command(config, outdir, ss_path, testrun, save_reference)
+        rnaseq_command = build_rnaseq_command(config, outdir, logdir, ss_path, testrun, save_reference)
         threads.append(threading.Thread(target=call_script, args=[rnaseq_command]))
 
     # Build the rnafusion command and add to threads
     if not skip_rnafusion:
-        logger.info("Starting the nf-core/rnafusion pipeline")
-        rnafusion_command = build_rnafusion_command(config, outdir, ss_path, testrun)
-        threads.append(threading.Thread(target=call_script, args=[rnafusion_command]))
+        rnafusion_command = build_rnafusion_command(config, outdir, logdir, ss_path, testrun)
+        threads.append(threading.Thread(target=call_script, args=[rnafusion_command], name="nf-core/rnafusion"))
 
     # Start both pipelines in parallel
     for t in threads:
+        logger.info(f"Starting the {t.name} pipeline")
         t.start()
-    for u in threads: # Waits for all threads to finish
+    for u in threads:  # Waits for all threads to finish
         u.join()
+        logger.info(f"Completed the {u.name} pipeline")
+
+    # Pipeline completed
+    logger.info("Completed the RNAseq wrapper workflow")
 
 
 if __name__ == "__main__":
