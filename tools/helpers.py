@@ -196,6 +196,9 @@ def build_rnafusion_command(config, outdir: str, logdir: str, ss_path: str, test
     rnafusion_command.append("--genomes_base")
     rnafusion_command.append(config.get("nextflow", "dependencies_fusion"))
 
+    # Use filtered fusionreport fusions for fusioninspector
+    rnafusion_command.append("--fusioninspector_filter")
+
     # Input samplesheet.csv
     if not testrun:
         rnafusion_command.append("--input")
