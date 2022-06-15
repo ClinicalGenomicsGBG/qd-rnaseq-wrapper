@@ -2,8 +2,6 @@ import os
 import sys
 import rich_click as click
 import datetime
-import threading
-import subprocess
 from tools.helpers import (
     setup_logger,
     get_config,
@@ -11,6 +9,7 @@ from tools.helpers import (
     sanitize_fastqdir,
     build_rnaseq_command,
     build_rnafusion_command,
+    start_pipe_threads,
 )
 
 
@@ -53,31 +52,22 @@ def main(fastqdir, outdir, strandedness, testrun, skip_rnaseq, skip_rnafusion, s
         logger.error(e)
         sys.exit(1)
 
-    # Start pipelines
-    # Set up the threading
-    def call_script(args):
-        subprocess.call(args)
-
-    threads = []
+    # Empty list for storing which pipes to start
+    pipe_commands = {}
 
     # Build the rnaseq command and add to threads
     if not skip_rnaseq:
         logger.info("Starting the nf-core/rnaseq pipeline")
         rnaseq_command = build_rnaseq_command(config, outdir, logdir, ss_path, testrun, save_reference)
-        threads.append(threading.Thread(target=call_script, args=[rnaseq_command]))
+        pipe_commands = pipe_commands | rnaseq_command
 
     # Build the rnafusion command and add to threads
     if not skip_rnafusion:
         rnafusion_command = build_rnafusion_command(config, outdir, logdir, ss_path, testrun)
-        threads.append(threading.Thread(target=call_script, args=[rnafusion_command], name="nf-core/rnafusion"))
+        pipe_commands = pipe_commands | rnafusion_command
 
-    # Start both pipelines in parallel
-    for t in threads:
-        logger.info(f"Starting the {t.name} pipeline")
-        t.start()
-    for u in threads:  # Waits for all threads to finish
-        u.join()
-        logger.info(f"Completed the {u.name} pipeline")
+    # Start the pipelines in separate threads
+    start_pipe_threads(pipe_commands, logger)
 
     # Pipeline completed
     logger.info("Completed the RNAseq wrapper workflow")

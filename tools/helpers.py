@@ -2,6 +2,7 @@ import os
 import logging
 from configparser import ConfigParser
 import subprocess
+import threading
 
 
 def setup_logger(name, log_path=None):
@@ -88,7 +89,7 @@ def sanitize_fastqdir(fastqdir: str):
 
 def build_rnaseq_command(
     config, outdir: str, logdir: str, ss_path: str, testrun=False, save_reference=False
-) -> list:
+) -> dict:
     """
     Create a list with the nextflow commands to send to subprocess
 
@@ -96,9 +97,9 @@ def build_rnaseq_command(
     :param outdir: Path to output directory
     :param logdir: Path to directory to store logs
     :param ss_path: Path to samplesheet.csv
-    :param: testrun: Set to true to run test data
-    :param: save_reference: Set to save the downloaded reference genomes in output dir
-    :return: List of list with all components of the command
+    :param testrun: Set to true to run test data
+    :param save_reference: Set to save the downloaded reference genomes in output dir
+    :return: Dict of list with all components of the command
     """
     rnaseq_command = ["nextflow"]
 
@@ -148,9 +149,9 @@ def build_rnaseq_command(
     if save_reference:
         rnaseq_command.append("--save_reference")
 
-    return rnaseq_command
+    return {'nf-core/rnaseq': rnaseq_command}
 
-def build_rnafusion_command(config, outdir: str, logdir: str, ss_path: str, testrun=False) -> list:
+def build_rnafusion_command(config, outdir: str, logdir: str, ss_path: str, testrun=False) -> dict:
     """
     Create a list with the nextflow commands to send to subprocess
 
@@ -158,8 +159,8 @@ def build_rnafusion_command(config, outdir: str, logdir: str, ss_path: str, test
     :param outdir: Path to output directory
     :param logdir: Path to directory to store logs
     :param ss_path: Path to samplesheet.csv
-    :param: testrun: Set to true to run test data
-    :return: List of list with all components of the command
+    :param testrun: Set to true to run test data
+    :return: Dict of list with all components of the command
     """
     rnafusion_command = ["nextflow"]
 
@@ -208,4 +209,30 @@ def build_rnafusion_command(config, outdir: str, logdir: str, ss_path: str, test
     rnafusion_command.append("--outdir")
     rnafusion_command.append(os.path.join(outdir, "rnafusion"))
 
-    return rnafusion_command
+    return {'nf-core/rnafusion': rnafusion_command}
+
+
+def start_pipe_threads(pipe_dict: dict, logger):
+    """
+    Takes a dict where keys are pipeline names and values are a list containing all parts of a
+    command, and starts them in a separate thread using subprocess.call
+
+    :param commands: Dict of lists where each one is a command to run
+    :param logger: Logger object to write logs to
+    """
+    # Set up the threading
+    def call_script(args):
+        subprocess.call(args)
+
+    # Create the threading object
+    threads = []
+    for pipe, command in pipe_dict.items():
+        threads.append(threading.Thread(target=call_script, args=[command], name=pipe))
+
+    # Start both pipelines in parallel
+    for t in threads:
+        logger.info(f"Starting the {t.name} pipeline")
+        t.start()
+    for u in threads:  # Waits for all threads to finish
+        u.join()
+        logger.info(f"Completed the {u.name} pipeline")
