@@ -9,12 +9,6 @@ All these are handled by a conda environment which can be activated before runni
 The wrapper use two nf-core pipelines, [nf-core/rnaseq](https://nf-co.re/rnaseq) and [nf-core/rnafusion](https://nf-co.re/rnafusion/2.0.0).
 Both pipelines were downloaded using the [nf-core tools suite](https://nf-co.re/tools/).
 
-**Code for installation**
-```
-nf-core download rnaseq --container singularity --outdir /apps/bio/repos/nf-core/nf-core-rnaseq-X.Y.Z
-nf-core download rnafusion --container singularity --outdir /apps/bio/repos/nf-core/nf-core-rnafusion-X.Y.Z
-```
-
 ### nf-core/rnaseq
 
 The pipeline is installed in `/apps/bio/repos/nf-core/nf-core-rnaseq-X.X/`.
