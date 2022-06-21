@@ -141,7 +141,8 @@ def build_rnaseq_command(
     rnaseq_command.append(config.get("rnaseq", "aligner"))
     #Add salmon if not using the star_salmon option
     if config.get("rnaseq", "aligner") != 'star_salmon':
-        rnaseq_command.append("--pseudo_aligner salmon")
+        rnaseq_command.append("--pseudo_aligner")
+        rnaseq_command.append("salmon")
 
     # Input samplesheet.csv
     if not testrun:
@@ -204,7 +205,7 @@ def build_rnafusion_command(config, outdir: str, logdir: str, ss_path: str, test
     rnafusion_command.append(config.get("rnafusion", "dependencies_fusion"))
 
     # Use filtered fusionreport fusions for fusioninspector
-    rnafusion_command.append("--fusioninspector_filter 1")
+    rnafusion_command.append("--fusioninspector_filter")
 
     # Set fusionreport tool cutoff
     rnafusion_command.append("--fusionreport-tool-cutoff")
