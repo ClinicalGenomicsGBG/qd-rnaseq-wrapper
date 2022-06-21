@@ -127,7 +127,6 @@ def build_rnaseq_command(
     else:
         rnaseq_command.append(config.get("nextflow", "profile"))
 
-
     # Pre-downloaded references, or download from iGenomes
     if config.has_section("rnaseq-references") and not save_reference and not testrun:
         for option in config.options("rnaseq-references"):
@@ -136,6 +135,13 @@ def build_rnaseq_command(
     else:
         rnaseq_command.append("--genome")
         rnaseq_command.append(config.get("rnaseq", "genome"))
+
+    # Aligner to use
+    rnaseq_command.append("--aligner")
+    rnaseq_command.append(config.get("rnaseq", "aligner"))
+    #Add salmon if not using the star_salmon option
+    if config.get("rnaseq", "aligner") != 'star_salmon':
+        rnaseq_command.append("--pseudo_aligner salmon")
 
     # Input samplesheet.csv
     if not testrun:
