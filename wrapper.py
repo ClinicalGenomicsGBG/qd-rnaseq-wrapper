@@ -57,7 +57,6 @@ def main(fastqdir, outdir, strandedness, testrun, skip_rnaseq, skip_rnafusion, s
 
     # Build the rnaseq command and add to threads
     if not skip_rnaseq:
-        logger.info("Starting the nf-core/rnaseq pipeline")
         rnaseq_command = build_rnaseq_command(config, outdir, logdir, ss_path, testrun, save_reference)
         pipe_commands = pipe_commands | rnaseq_command
 
