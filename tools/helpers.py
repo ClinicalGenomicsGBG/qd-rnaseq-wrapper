@@ -109,7 +109,7 @@ def build_rnaseq_command(
 
     # Path to main.nf
     rnaseq_command.append("run")
-    rnaseq_command.append(config.get("nextflow", "rnaseq"))
+    rnaseq_command.append(config.get("rnaseq", "main"))
 
     # Execution report
     rnaseq_command.append("-with-report")
@@ -129,13 +129,13 @@ def build_rnaseq_command(
 
 
     # Pre-downloaded references, or download from iGenomes
-    if config.has_section("rnaseq-references") and not save_reference:
+    if config.has_section("rnaseq-references") and not save_reference and not testrun:
         for option in config.options("rnaseq-references"):
             rnaseq_command.append(f"--{option}")
             rnaseq_command.append(config.get("rnaseq-references", option))
     else:
         rnaseq_command.append("--genome")
-        rnaseq_command.append(config.get("nextflow", "genome"))
+        rnaseq_command.append(config.get("rnaseq", "genome"))
 
     # Input samplesheet.csv
     if not testrun:
@@ -170,7 +170,7 @@ def build_rnafusion_command(config, outdir: str, logdir: str, ss_path: str, test
 
     # Path to main.nf
     rnafusion_command.append("run")
-    rnafusion_command.append(config.get("nextflow", "rnafusion"))
+    rnafusion_command.append(config.get("rnafusion", "main"))
 
     # Execution report
     rnafusion_command.append("-with-report")
@@ -195,10 +195,14 @@ def build_rnafusion_command(config, outdir: str, logdir: str, ss_path: str, test
 
     # Path to dependencies
     rnafusion_command.append("--genomes_base")
-    rnafusion_command.append(config.get("nextflow", "dependencies_fusion"))
+    rnafusion_command.append(config.get("rnafusion", "dependencies_fusion"))
 
     # Use filtered fusionreport fusions for fusioninspector
-    rnafusion_command.append("--fusioninspector_filter")
+    rnafusion_command.append("--fusioninspector_filter 1")
+
+    # Set fusionreport tool cutoff
+    rnafusion_command.append("--fusionreport-tool-cutoff")
+    rnafusion_command.append(config.get("rnafusion", "fusionreport_tool_cutoff"))
 
     # Input samplesheet.csv
     if not testrun:
@@ -236,3 +240,4 @@ def start_pipe_threads(pipe_dict: dict, logger):
     for u in threads:  # Waits for all threads to finish
         u.join()
         logger.info(f"Completed the {u.name} pipeline")
+        
