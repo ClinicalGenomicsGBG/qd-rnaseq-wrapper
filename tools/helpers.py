@@ -1,4 +1,5 @@
 import os
+import sys
 import logging
 from configparser import ConfigParser
 import subprocess
@@ -116,9 +117,13 @@ def build_rnaseq_command(
     rnaseq_command.append(os.path.join(logdir, "rnaseq", "rnaseq-execution.html"))
 
     # If custom config, use it
-    if config.get("nextflow", "custom_config"):
+    if config.has_option("nextflow", "custom_config"):
         rnaseq_command.append("-c")
         rnaseq_command.append(config.get("nextflow", "custom_config"))
+    elif os.path.isfile(os.path.join(os.path.dirname(sys.modules['__main__'].__file__), "qd-wrapper_nextflow.config")):
+        rnaseq_command.append("-c")
+        rnaseq_command.append(os.path.join(os.path.dirname(sys.modules['__main__'].__file__), "qd-wrapper_nextflow.config"))
+
 
     # Profile to use
     rnaseq_command.append("-profile")
@@ -139,7 +144,7 @@ def build_rnaseq_command(
     # Aligner to use
     rnaseq_command.append("--aligner")
     rnaseq_command.append(config.get("rnaseq", "aligner"))
-    #Add salmon if not using the star_salmon option
+    # Add salmon if not using the star_salmon option
     if config.get("rnaseq", "aligner") != 'star_salmon':
         rnaseq_command.append("--pseudo_aligner")
         rnaseq_command.append("salmon")
@@ -186,9 +191,12 @@ def build_rnafusion_command(config, outdir: str, logdir: str, ss_path: str, test
     )
 
     # If custom config, use it
-    if config.get("nextflow", "custom_config"):
+    if config.has_option("nextflow", "custom_config"):
         rnafusion_command.append("-c")
         rnafusion_command.append(config.get("nextflow", "custom_config"))
+    elif os.path.isfile(os.path.join(os.path.dirname(sys.modules['__main__'].__file__), "qd-wrapper_nextflow.config")):
+        rnafusion_command.append("-c")
+        rnafusion_command.append(os.path.join(os.path.dirname(sys.modules['__main__'].__file__), "qd-wrapper_nextflow.config"))
 
     # Profile to use
     rnafusion_command.append("-profile")
@@ -247,4 +255,3 @@ def start_pipe_threads(pipe_dict: dict, logger):
     for u in threads:  # Waits for all threads to finish
         u.join()
         logger.info(f"Completed the {u.name} pipeline")
-        
