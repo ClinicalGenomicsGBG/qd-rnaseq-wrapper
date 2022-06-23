@@ -23,6 +23,10 @@ from tools.helpers import (
     help="Path to output directory",
 )
 @click.option(
+    "--sample-name",
+    help="Name of sample to be used in output. Defaults to fastqdir basename",
+)
+@click.option(
     "--strandedness",
     default="reverse",
     help="Strandedness of seq libraries",
@@ -50,6 +54,7 @@ from tools.helpers import (
 def main(
     fastqdir: str,
     outdir: str,
+    sample_name: str,
     strandedness: str,
     testrun: bool,
     skip_rnaseq: bool,
@@ -70,7 +75,6 @@ def main(
     )
     logger = setup_logger("qd-rnaseq", logfile)
     logger.info("Starting the RNAseq pipepline wrapper.")
-
 
     # If testrun, skip fastq handling
     if not testrun:
@@ -141,6 +145,7 @@ def main(
     logger.info("Completed the RNAseq wrapper workflow")
 
     # Move selected files to report dir
+
 
 if __name__ == "__main__":
     main()
