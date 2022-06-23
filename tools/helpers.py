@@ -89,7 +89,12 @@ def sanitize_fastqdir(fastqdir: str):
 
 
 def build_rnaseq_command(
-    config, outdir: str, logdir: str, ss_path: str, testrun=False, save_reference=False
+    config,
+    outdir: str,
+    logdir: str,
+    ss_path: str,
+    testrun=False,
+    save_reference=False,
 ) -> dict:
     """
     Create a list with the nextflow commands to send to subprocess
@@ -120,10 +125,19 @@ def build_rnaseq_command(
     if config.has_option("nextflow", "custom_config"):
         rnaseq_command.append("-c")
         rnaseq_command.append(config.get("nextflow", "custom_config"))
-    elif os.path.isfile(os.path.join(os.path.dirname(sys.modules['__main__'].__file__), "qd-wrapper_nextflow.config")):
+    elif os.path.isfile(
+        os.path.join(
+            os.path.dirname(sys.modules["__main__"].__file__),
+            "qd-wrapper_nextflow.config",
+        )
+    ):
         rnaseq_command.append("-c")
-        rnaseq_command.append(os.path.join(os.path.dirname(sys.modules['__main__'].__file__), "qd-wrapper_nextflow.config"))
-
+        rnaseq_command.append(
+            os.path.join(
+                os.path.dirname(sys.modules["__main__"].__file__),
+                "qd-wrapper_nextflow.config",
+            )
+        )
 
     # Profile to use
     rnaseq_command.append("-profile")
@@ -145,7 +159,7 @@ def build_rnaseq_command(
     rnaseq_command.append("--aligner")
     rnaseq_command.append(config.get("rnaseq", "aligner"))
     # Add salmon if not using the star_salmon option
-    if config.get("rnaseq", "aligner") != 'star_salmon':
+    if config.get("rnaseq", "aligner") != "star_salmon":
         rnaseq_command.append("--pseudo_aligner")
         rnaseq_command.append("salmon")
 
@@ -161,9 +175,16 @@ def build_rnaseq_command(
     if save_reference:
         rnaseq_command.append("--save_reference")
 
-    return {'nf-core/rnaseq': rnaseq_command}
+    return {"nf-core/rnaseq": rnaseq_command}
 
-def build_rnafusion_command(config, outdir: str, logdir: str, ss_path: str, testrun=False) -> dict:
+
+def build_rnafusion_command(
+    config,
+    outdir: str,
+    logdir: str,
+    ss_path: str,
+    testrun=False,
+) -> dict:
     """
     Create a list with the nextflow commands to send to subprocess
 
@@ -194,9 +215,19 @@ def build_rnafusion_command(config, outdir: str, logdir: str, ss_path: str, test
     if config.has_option("nextflow", "custom_config"):
         rnafusion_command.append("-c")
         rnafusion_command.append(config.get("nextflow", "custom_config"))
-    elif os.path.isfile(os.path.join(os.path.dirname(sys.modules['__main__'].__file__), "qd-wrapper_nextflow.config")):
+    elif os.path.isfile(
+        os.path.join(
+            os.path.dirname(sys.modules["__main__"].__file__),
+            "qd-wrapper_nextflow.config",
+        )
+    ):
         rnafusion_command.append("-c")
-        rnafusion_command.append(os.path.join(os.path.dirname(sys.modules['__main__'].__file__), "qd-wrapper_nextflow.config"))
+        rnafusion_command.append(
+            os.path.join(
+                os.path.dirname(sys.modules["__main__"].__file__),
+                "qd-wrapper_nextflow.config",
+            )
+        )
 
     # Profile to use
     rnafusion_command.append("-profile")
@@ -228,7 +259,7 @@ def build_rnafusion_command(config, outdir: str, logdir: str, ss_path: str, test
     rnafusion_command.append("--outdir")
     rnafusion_command.append(os.path.join(outdir, "rnafusion"))
 
-    return {'nf-core/rnafusion': rnafusion_command}
+    return {"nf-core/rnafusion": rnafusion_command}
 
 
 def start_pipe_threads(pipe_dict: dict, logger):
