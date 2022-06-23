@@ -96,6 +96,7 @@ def main(
             testrun,
             save_reference,
         )
+        # Merge the rnaseq command with the other commands
         pipe_commands = pipe_commands | rnaseq_command
 
     # Build the rnafusion command and add to threads
@@ -107,6 +108,7 @@ def main(
             ss_path,
             testrun,
         )
+        # Merge the rnafusion command with the other commands
         pipe_commands = pipe_commands | rnafusion_command
 
     # Start the pipelines in separate threads
