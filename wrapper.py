@@ -14,20 +14,51 @@ from tools.helpers import (
 
 
 @click.command()
-@click.option("--fastqdir", required=True, help="Path to input directory of fastq files")
-@click.option("--outdir", required=True, help="Path to output directory")
-@click.option("--strandedness", default="reverse", help="Strandedness of seq libraries")
-@click.option("--testrun", is_flag=True, help="Run with nf-core test data")
-@click.option("--skip-rnaseq", is_flag=True, help="Skip the nf-core/rnaseq pipeline")
-@click.option("--skip-rnafusion", is_flag=True, help="Skip the nf-core/rnafusion pipeline")
-@click.option("--save-reference", is_flag=True, help="Save the genome references in outfolder")
-def main(fastqdir, outdir, strandedness, testrun, skip_rnaseq, skip_rnafusion, save_reference):
+@click.option(
+    "--fastqdir",
+    required=True,
+    help="Path to input directory of fastq files",
+)
+@click.option(
+    "--outdir",
+    required=True,
+    help="Path to output directory",
+)
+@click.option(
+    "--strandedness",
+    default="reverse",
+    help="Strandedness of seq libraries",
+)
+@click.option(
+    "--testrun",
+    is_flag=True,
+    help="Run with nf-core test data",
+)
+@click.option(
+    "--skip-rnaseq",
+    is_flag=True,
+    help="Skip the nf-core/rnaseq pipeline",
+)
+@click.option(
+    "--skip-rnafusion",
+    is_flag=True,
+    help="Skip the nf-core/rnafusion pipeline",
+)
+@click.option(
+    "--save-reference",
+    is_flag=True,
+    help="Save the genome references in outfolder",
+)
+def main(
+    fastqdir, outdir, strandedness, testrun, skip_rnaseq, skip_rnafusion, save_reference
+):
     # Set up the logger function
     now = datetime.datetime.now()
     logdir = os.path.join(outdir, "logs")
     os.makedirs(logdir, exist_ok=True)
     logfile = os.path.join(
-        logdir, "QD-rnaseq-wrapper_" + now.strftime("%y%m%d_%H%M%S") + ".log"
+        logdir,
+        "QD-rnaseq-wrapper_" + now.strftime("%y%m%d_%H%M%S") + ".log",
     )
     logger = setup_logger("qd-rnaseq", logfile)
     logger.info("Starting the RNAseq pipepline wrapper.")
@@ -57,12 +88,25 @@ def main(fastqdir, outdir, strandedness, testrun, skip_rnaseq, skip_rnafusion, s
 
     # Build the rnaseq command and add to threads
     if not skip_rnaseq:
-        rnaseq_command = build_rnaseq_command(config, outdir, logdir, ss_path, testrun, save_reference)
+        rnaseq_command = build_rnaseq_command(
+            config,
+            outdir,
+            logdir,
+            ss_path,
+            testrun,
+            save_reference,
+        )
         pipe_commands = pipe_commands | rnaseq_command
 
     # Build the rnafusion command and add to threads
     if not skip_rnafusion:
-        rnafusion_command = build_rnafusion_command(config, outdir, logdir, ss_path, testrun)
+        rnafusion_command = build_rnafusion_command(
+            config,
+            outdir,
+            logdir,
+            ss_path,
+            testrun,
+        )
         pipe_commands = pipe_commands | rnafusion_command
 
     # Start the pipelines in separate threads
