@@ -91,7 +91,6 @@ def sanitize_fastqdir(fastqdir: str) -> None:
 def build_rnaseq_command(
     config,
     outdir: str,
-    logdir: str,
     ss_path: str,
     testrun=False,
     save_reference=False,
@@ -101,7 +100,6 @@ def build_rnaseq_command(
 
     :param config: configparser object with configurations
     :param outdir: Path to output directory
-    :param logdir: Path to directory to store logs
     :param ss_path: Path to samplesheet.csv
     :param testrun: Set to true to run test data
     :param save_reference: Set to save the downloaded reference genomes in output dir
@@ -111,7 +109,7 @@ def build_rnaseq_command(
 
     # Place of logs
     rnaseq_command.append("-log")
-    rnaseq_command.append(os.path.join(logdir, "rnaseq", "rnaseq.log"))
+    rnaseq_command.append(os.path.join(outdir, "logs", "rnaseq.log"))
 
     # Path to main.nf
     rnaseq_command.append("run")
@@ -119,7 +117,7 @@ def build_rnaseq_command(
 
     # Execution report
     rnaseq_command.append("-with-report")
-    rnaseq_command.append(os.path.join(logdir, "rnaseq", "rnaseq-execution.html"))
+    rnaseq_command.append(os.path.join(outdir, "logs", "rnaseq-execution.html"))
 
     # If custom config, use it
     if config.has_option("nextflow", "custom_config"):
@@ -181,7 +179,6 @@ def build_rnaseq_command(
 def build_rnafusion_command(
     config,
     outdir: str,
-    logdir: str,
     ss_path: str,
     testrun=False,
 ) -> dict[str, list[str]]:
@@ -190,7 +187,6 @@ def build_rnafusion_command(
 
     :param config: configparser object with configurations
     :param outdir: Path to output directory
-    :param logdir: Path to directory to store logs
     :param ss_path: Path to samplesheet.csv
     :param testrun: Set to true to run test data
     :return: Dict of list with all components of the command
@@ -199,7 +195,7 @@ def build_rnafusion_command(
 
     # Place of logs
     rnafusion_command.append("-log")
-    rnafusion_command.append(os.path.join(logdir, "rnafusion", "rnafusion.log"))
+    rnafusion_command.append(os.path.join(outdir, "logs", "rnafusion.log"))
 
     # Path to main.nf
     rnafusion_command.append("run")
@@ -208,7 +204,7 @@ def build_rnafusion_command(
     # Execution report
     rnafusion_command.append("-with-report")
     rnafusion_command.append(
-        os.path.join(logdir, "rnafusion", "rnafusion-execution.html")
+        os.path.join(outdir, "logs", "rnafusion-execution.html")
     )
 
     # If custom config, use it

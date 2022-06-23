@@ -20,7 +20,6 @@ from tools.helpers import (
 )
 @click.option(
     "--outdir",
-    required=True,
     help="Path to output directory",
 )
 @click.option(
@@ -57,9 +56,13 @@ def main(
     skip_rnafusion: bool,
     save_reference: bool,
 ) -> None:
+
+    # Read in the config
+    config = get_config()
+
     # Set up the logger function
     now = datetime.datetime.now()
-    logdir = os.path.join(outdir, "logs")
+    logdir = config.get("general", "wrapper_log_dir")
     os.makedirs(logdir, exist_ok=True)
     logfile = os.path.join(
         logdir,
@@ -68,9 +71,6 @@ def main(
     logger = setup_logger("qd-rnaseq", logfile)
     logger.info("Starting the RNAseq pipepline wrapper.")
 
-    # Read in the config
-    logger.info(f"Reading parameters from config.ini")
-    config = get_config()
 
     # If testrun, skip fastq handling
     if not testrun:
@@ -90,13 +90,12 @@ def main(
             logger.error(e)
             sys.exit(1)
     else:
+        sample_name = 'testrun'
+        ss_path = ''  # No samplesheet in testruns
         logger.info("Running pipelines with test data")
 
     # Set the samplename and output directory. Default to fastqdir basename
-    if testrun:
-        sample_name = 'testrun'
-        ss_path = '' # No samplesheet in testruns
-    elif not sample_name:
+    if not sample_name:
         sample_name = os.path.basename(os.path.normpath(fastqdir))
     if outdir is None:
         outdir = os.path.join(config.get("general", "output_dir"), sample_name)
@@ -117,7 +116,6 @@ def main(
         rnaseq_command = build_rnaseq_command(
             config,
             outdir,
-            logdir,
             ss_path,
             testrun,
             save_reference,
@@ -130,7 +128,6 @@ def main(
         rnafusion_command = build_rnafusion_command(
             config,
             outdir,
-            logdir,
             ss_path,
             testrun,
         )
@@ -143,6 +140,7 @@ def main(
     # Pipeline completed
     logger.info("Completed the RNAseq wrapper workflow")
 
+    # Move selected files to report dir
 
 if __name__ == "__main__":
     main()
