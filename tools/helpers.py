@@ -48,9 +48,14 @@ def get_config():
     return config
 
 
-def dir_to_samplesheet(scriptpath: str, fastqdir: str, strandedness: str) -> str:
+def dir_to_samplesheet(
+    scriptpath: str,
+    fastqdir: str,
+    strandedness: str,
+) -> str:
     """
-    Executes the nf-core fastq_dir_to_samplesheet.py script on a given dir with fastq files
+    Executes the nf-core fastq_dir_to_samplesheet.py script on a
+    given dir with fastq files
     :param scriptpath: Path to fastq_dir_to_samplesheet.py
     :param fastqdir: Path to directory with fastq files
     :param strandedness: Strandedness of library
@@ -77,7 +82,8 @@ def dir_to_samplesheet(scriptpath: str, fastqdir: str, strandedness: str) -> str
 def sanitize_fastqdir(fastqdir: str) -> None:
     """
     Checks all files in a given fastq dir that assumptions about naming is met.
-    For now this only checks file endings, but could be expanded to check for samples with more than 2 files.
+    For now this only checks file endings, but could be expanded to check for
+    samples with more than 2 files.
     """
     for filename in os.listdir(fastqdir):
         if not filename.endswith(".fastq.gz"):
@@ -102,7 +108,7 @@ def build_rnaseq_command(
     :param outdir: Path to output directory
     :param ss_path: Path to samplesheet.csv
     :param testrun: Set to true to run test data
-    :param save_reference: Set to save the downloaded reference genomes in output dir
+    :param save_reference: Save the downloaded reference genomes in output dir
     :return: Dict of list with all components of the command
     """
     rnaseq_command = ["nextflow"]
@@ -117,7 +123,13 @@ def build_rnaseq_command(
 
     # Execution report
     rnaseq_command.append("-with-report")
-    rnaseq_command.append(os.path.join(outdir, "logs", "rnaseq-execution.html"))
+    rnaseq_command.append(
+        os.path.join(
+            outdir,
+            "logs",
+            "rnaseq-execution.html",
+        )
+    )
 
     # If custom config, use it
     if config.has_option("nextflow", "custom_config"):
@@ -140,9 +152,19 @@ def build_rnaseq_command(
     # Profile to use
     rnaseq_command.append("-profile")
     if testrun:
-        rnaseq_command.append(config.get("nextflow", "test_profile"))
+        rnaseq_command.append(
+            config.get(
+                "nextflow",
+                "test_profile",
+            )
+        )
     else:
-        rnaseq_command.append(config.get("nextflow", "profile"))
+        rnaseq_command.append(
+            config.get(
+                "nextflow",
+                "profile",
+            )
+        )
 
     # Pre-downloaded references, or download from iGenomes
     if config.has_section("rnaseq-references") and not save_reference and not testrun:
@@ -203,9 +225,7 @@ def build_rnafusion_command(
 
     # Execution report
     rnafusion_command.append("-with-report")
-    rnafusion_command.append(
-        os.path.join(outdir, "logs", "rnafusion-execution.html")
-    )
+    rnafusion_command.append(os.path.join(outdir, "logs", "rnafusion-execution.html"))
 
     # If custom config, use it
     if config.has_option("nextflow", "custom_config"):
@@ -260,10 +280,11 @@ def build_rnafusion_command(
 
 def start_pipe_threads(pipe_dict: dict, logger) -> None:
     """
-    Takes a dict where keys are pipeline names and values are a list containing all parts of a
-    command, and starts them in a separate thread using subprocess.call
+    Takes a dict where keys are pipeline names and values are a
+    list containing all parts of a command, and starts them in a
+    separate thread using subprocess.call
 
-    :param commands: Dict of lists where each one is a command to run
+    :param pipe_dict: Dict of lists where each one is a command to run
     :param logger: Logger object to write logs to
     """
     # Set up the threading
@@ -273,7 +294,13 @@ def start_pipe_threads(pipe_dict: dict, logger) -> None:
     # Create the threading object
     threads = []
     for pipe, command in pipe_dict.items():
-        threads.append(threading.Thread(target=call_script, args=[command], name=pipe))
+        threads.append(
+            threading.Thread(
+                target=call_script,
+                args=[command],
+                name=pipe,
+            )
+        )
 
     # Start both pipelines in parallel
     for t in threads:
