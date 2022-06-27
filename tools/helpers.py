@@ -74,7 +74,7 @@ def dir_to_samplesheet(scriptpath: str, fastqdir: str, strandedness: str) -> str
     return ss_path
 
 
-def sanitize_fastqdir(fastqdir: str):
+def sanitize_fastqdir(fastqdir: str) -> None:
     """
     Checks all files in a given fastq dir that assumptions about naming is met.
     For now this only checks file endings, but could be expanded to check for samples with more than 2 files.
@@ -95,7 +95,7 @@ def build_rnaseq_command(
     ss_path: str,
     testrun=False,
     save_reference=False,
-) -> dict:
+) -> dict[str, list[str]]:
     """
     Create a list with the nextflow commands to send to subprocess
 
@@ -184,7 +184,7 @@ def build_rnafusion_command(
     logdir: str,
     ss_path: str,
     testrun=False,
-) -> dict:
+) -> dict[str, list[str]]:
     """
     Create a list with the nextflow commands to send to subprocess
 
@@ -262,7 +262,7 @@ def build_rnafusion_command(
     return {"nf-core/rnafusion": rnafusion_command}
 
 
-def start_pipe_threads(pipe_dict: dict, logger):
+def start_pipe_threads(pipe_dict: dict, logger) -> None:
     """
     Takes a dict where keys are pipeline names and values are a list containing all parts of a
     command, and starts them in a separate thread using subprocess.call

@@ -50,8 +50,14 @@ from tools.helpers import (
     help="Save the genome references in outfolder",
 )
 def main(
-    fastqdir, outdir, strandedness, testrun, skip_rnaseq, skip_rnafusion, save_reference
-):
+    fastqdir: str,
+    outdir: str,
+    strandedness: str,
+    testrun: bool,
+    skip_rnaseq: bool,
+    skip_rnafusion: bool,
+    save_reference: bool,
+) -> None:
     # Set up the logger function
     now = datetime.datetime.now()
     logdir = os.path.join(outdir, "logs")
