@@ -145,6 +145,8 @@ def main(
     logger.info("Completed the RNAseq wrapper workflow")
 
     # Move selected files to report dir
+    reportdir = config.get("general", "report_dir")
+    logger.info(f"Moving files to {reportdir}")
 
 
 if __name__ == "__main__":
