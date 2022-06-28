@@ -1,5 +1,7 @@
 import os
 import sys
+import glob
+import shutil
 import logging
 from configparser import ConfigParser
 import subprocess
@@ -278,7 +280,7 @@ def build_rnafusion_command(
     return {"nf-core/rnafusion": rnafusion_command}
 
 
-def start_pipe_threads(pipe_dict: dict, logger) -> None:
+def start_pipe_threads(pipe_dict: dict, logger) -> list:
     """
     Takes a dict where keys are pipeline names and values are a
     list containing all parts of a command, and starts them in a
@@ -303,9 +305,75 @@ def start_pipe_threads(pipe_dict: dict, logger) -> None:
         )
 
     # Start both pipelines in parallel
+    finished_pipes = []
     for t in threads:
         logger.info(f"Starting the {t.name} pipeline")
         t.start()
     for u in threads:  # Waits for all threads to finish
         u.join()
         logger.info(f"Completed the {u.name} pipeline")
+        finished_pipes.append(u.name)
+
+    return finished_pipes
+
+
+def report_results(finished_pipes: list, outdir: str, sample_name: str, config) -> dict:
+    """
+    Takes a list of finished pipelines and checks which output files from this
+    pipeline should be included in the final report (from config file). opies these to the
+    specified report directory in the config. Returns a dict with the
+    number of copied files per pipeline
+
+    :param finished_pipes: List of finished pipelines
+    :param outdir: Path from where to move files (pipeline outdir)
+    :param sample_name: Name of the sample
+    :param config: Configparser object with configurations
+    :return: Dict with the number of copied files per pipeline
+    """
+    # Read in where stuff should be copied to
+    report_dir = os.path.join(config.get("general", "report_dir"), sample_name)
+
+    # Setup a dict for returning how many files
+    copied_files = {}
+
+    # Copy files for each pipeline used
+    for pipeline in finished_pipes:
+        # Remove chars before the slash ("nf-core/")
+        pipeline = pipeline.split("/")[-1]
+
+        # Read in the config file for this pipeline
+        for option in config.options(f"report-{pipeline}"):
+
+            # Unpack all options
+            for file_refex in config.get(f"report-{pipeline}", option).split(','):
+
+                # Special case for stringtie as this is nested under the name of the aligner
+                if option == 'stringtie':
+                    aligner = config.get('rnaseq', 'aligner')
+                    search_path = os.path.join(outdir, pipeline, aligner, option, file_refex)
+                else:
+                    search_path = os.path.join(outdir, pipeline, option, file_refex)
+
+                # for all files in path
+                for file in glob.glob(search_path):
+                    # Copy the file to the correct location
+                    destination = os.path.join(
+                            report_dir,
+                            option,
+                            os.path.basename(file))
+                    os.makedirs(os.path.dirname(destination), exist_ok=True)
+
+                    if os.path.isdir(file):
+                        # Copy the directory
+                        shutil.copytree(file, destination, dirs_exist_ok=True)
+                    else:
+                        # Copy the file
+                        shutil.copy(file, destination)
+
+                    # Add to the dict
+                    if pipeline in copied_files:
+                        copied_files[pipeline] += 1
+                    else:
+                        copied_files[pipeline] = 1
+
+    return copied_files
