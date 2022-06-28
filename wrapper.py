@@ -16,7 +16,6 @@ from tools.helpers import (
 @click.command()
 @click.option(
     "--fastqdir",
-    required=True,
     help="Path to input directory of fastq files",
 )
 @click.option(
@@ -73,21 +72,42 @@ def main(
     logger.info(f"Reading parameters from config.ini")
     config = get_config()
 
-    # Make sure fastqdir looks good
-    try:
-        sanitize_fastqdir(fastqdir)
-    except Exception as e:
-        logger.error(e)
-        sys.exit(1)
+    # If testrun, skip fastq handling
+    if not testrun:
+        # Make sure fastqdir looks good
+        try:
+            sanitize_fastqdir(fastqdir)
+        except Exception as e:
+            logger.error(e)
+            sys.exit(1)
 
-    # Make samplesheet from fastq dir
-    logger.info(f"Creating samplesheet.csv from {fastqdir}")
-    scriptpath = config.get("general", "fastq_to_ss_path")
-    try:
-        ss_path = dir_to_samplesheet(scriptpath, fastqdir, strandedness)
-    except Exception as e:
-        logger.error(e)
-        sys.exit(1)
+        # Make samplesheet from fastq dir
+        logger.info(f"Creating samplesheet.csv from {fastqdir}")
+        scriptpath = config.get("general", "fastq_to_ss_path")
+        try:
+            ss_path = dir_to_samplesheet(scriptpath, fastqdir, strandedness)
+        except Exception as e:
+            logger.error(e)
+            sys.exit(1)
+    else:
+        logger.info("Running pipelines with test data")
+
+    # Set the samplename and output directory. Default to fastqdir basename
+    if testrun:
+        sample_name = 'testrun'
+        ss_path = '' # No samplesheet in testruns
+    elif not sample_name:
+        sample_name = os.path.basename(os.path.normpath(fastqdir))
+    if outdir is None:
+        outdir = os.path.join(config.get("general", "output_dir"), sample_name)
+
+    os.makedirs(outdir, exist_ok=True)
+    logger.info(f"Output directory: {outdir}")
+
+    # Get the name of the sample
+    # TODO, this should be read from the samplesheet
+    # and then looped over to run the pipelines
+    logger.info(f"Processing sample: {sample_name}")
 
     # Empty list for storing which pipes to start
     pipe_commands = {}
