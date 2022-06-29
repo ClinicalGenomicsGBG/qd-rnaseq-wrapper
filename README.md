@@ -74,6 +74,11 @@ nextflow /apps/bio/repos/nf-core/nf-core-rnafusion-2.0.0/workflow/main.nf
 ### Input data
 * The wrapper takes a directory with gzipped fastq files as input. There should only be two files per sample. If there are more, please concatenate them before running the wwrapper
 
+### Output
+The output from both pipelines is set in the config file. From this a subset 
+of files are copied to a reporting directory (also set in config). Logs for the pipelines end up in the 
+output directory. One exception to this is the wrapper log, which ends up in a log dir set in the config.
 
 ## TODO
 * Allow for more than 2 input files per sample
+* Move mapping files to IGV
