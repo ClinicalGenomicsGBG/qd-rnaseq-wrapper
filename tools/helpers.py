@@ -171,6 +171,9 @@ def build_rnaseq_command(
     # Pre-downloaded references, or download from iGenomes
     if config.has_section("rnaseq-references") and not save_reference and not testrun:
         for option in config.options("rnaseq-references"):
+            #Deal with which index to use separately
+            if option == "star_index" or option == "rsem_index":
+                continue
             rnaseq_command.append(f"--{option}")
             rnaseq_command.append(config.get("rnaseq-references", option))
     else:
@@ -184,6 +187,19 @@ def build_rnaseq_command(
     if config.get("rnaseq", "aligner") != "star_salmon":
         rnaseq_command.append("--pseudo_aligner")
         rnaseq_command.append("salmon")
+
+    # Set the index to use
+    aligner = config.get("rnaseq", "aligner")
+
+
+    if aligner == "star_salmon":
+        rnaseq_command.append("--star_index")
+        rnaseq_command.append(config.get("rnaseq-references", "star_index"))
+    elif aligner == "star_rsem":
+        rnaseq_command.append("--rsem_index")
+        rnaseq_command.append(config.get("rnaseq-references", "rsem_index"))
+    else:
+        raise Exception(f"Aligner {aligner} not supported.")
 
     # Input samplesheet.csv
     if not testrun:
