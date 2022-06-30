@@ -268,6 +268,10 @@ def build_rnafusion_command(
     rnafusion_command.append("--fusionreport-tool-cutoff")
     rnafusion_command.append(config.get("rnafusion", "fusionreport_tool_cutoff"))
 
+    # Set the readlength to use
+    rnafusion_command.append("--read_length")
+    rnafusion_command.append(config.get("rnafusion", "readlength"))
+
     # Input samplesheet.csv
     if not testrun:
         rnafusion_command.append("--input")
