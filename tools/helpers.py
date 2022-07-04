@@ -168,8 +168,16 @@ def build_rnaseq_command(
             )
         )
 
+    # Outdir
+    rnaseq_command.append("--outdir")
+    rnaseq_command.append(os.path.join(outdir, "rnaseq"))
+
+    # If testrun, all input is now completed
+    if testrun:
+        return {"nf-core/rnaseq": rnaseq_command}
+
     # Pre-downloaded references, or download from iGenomes
-    if config.has_section("rnaseq-references") and not save_reference and not testrun:
+    if config.has_section("rnaseq-references") and not save_reference:
         for option in config.options("rnaseq-references"):
             #Deal with which index to use separately
             if option == "star_index" or option == "rsem_index":
@@ -191,7 +199,6 @@ def build_rnaseq_command(
     # Set the index to use
     aligner = config.get("rnaseq", "aligner")
 
-
     if aligner == "star_salmon":
         rnaseq_command.append("--star_index")
         rnaseq_command.append(config.get("rnaseq-references", "star_index"))
@@ -202,13 +209,8 @@ def build_rnaseq_command(
         raise Exception(f"Aligner {aligner} not supported.")
 
     # Input samplesheet.csv
-    if not testrun:
-        rnaseq_command.append("--input")
-        rnaseq_command.append(ss_path)
-
-    # Outdir
-    rnaseq_command.append("--outdir")
-    rnaseq_command.append(os.path.join(outdir, "rnaseq"))
+    rnaseq_command.append("--input")
+    rnaseq_command.append(ss_path)
 
     if save_reference:
         rnaseq_command.append("--save_reference")
