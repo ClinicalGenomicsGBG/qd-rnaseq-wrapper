@@ -57,7 +57,7 @@ from tools.helpers import (
     is_flag=True,
     help="Skips moving output data to reporting folder",
 )
-def qd-start(
+def qd_start(
     fastqdir: str,
     outdir: str,
     sample_name: str,
@@ -162,4 +162,4 @@ def qd-start(
     logger.info("Completed the RNAseq wrapper workflow")
 
 if __name__ == "__main__":
-    qd-start()
+    qd_start()
