@@ -72,7 +72,7 @@ nextflow /apps/bio/repos/nf-core/nf-core-rnafusion-2.0.0/workflow/main.nf
 
 ## Usage
 ### Input data
-* The wrapper takes a directory with gzipped fastq files as input. There should only be two files per sample. If there are more, please concatenate them before running the wwrapper
+* The runner takes a directory with gzipped fastq files as input. There should only be two files per sample. If there are more, please concatenate them before running the wrapper
 
 ### Output
 The output from both pipelines is set in the config file. From this a subset 
