@@ -320,7 +320,7 @@ def start_pipe_threads(pipe_dict: dict, logger) -> list:
 def report_results(finished_pipes: list, outdir: str, sample_name: str, config) -> dict:
     """
     Takes a list of finished pipelines and checks which output files from this
-    pipeline should be included in the final report (from config file). opies these to the
+    pipeline should be included in the final report (from config file). Copies these to the
     specified report directory in the config. Returns a dict with the
     number of copied files per pipeline
 
