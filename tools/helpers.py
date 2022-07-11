@@ -354,6 +354,7 @@ def report_results(finished_pipes: list, outdir: str, sample_name: str, config) 
     """
     # Read in where stuff should be copied to
     report_dir = os.path.join(config.get("general", "report_dir"), sample_name)
+    igv_dir = os.path.join(config.get("general", "igv_dir"), sample_name)
 
     # Setup a dict for returning how many files
     copied_files = {}
@@ -385,7 +386,14 @@ def report_results(finished_pipes: list, outdir: str, sample_name: str, config) 
                             os.path.basename(file))
                     os.makedirs(os.path.dirname(destination), exist_ok=True)
 
-                    if os.path.isdir(file):
+                    if file.endswith(('.bam','.bai','.bigWig')): #IGV files
+                        destination = os.path.join(
+                            igv_dir,
+                            os.path.basename(file))
+
+                        shutil.copy(file, destination)
+
+                    elif os.path.isdir(file):
                         # Copy the directory
                         shutil.copytree(file, destination, dirs_exist_ok=True)
                     else:
