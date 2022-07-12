@@ -65,7 +65,7 @@ def qd_start(
     fastqdir: str,
     outdir: str,
     sample_name: str,
-    ss_path, str,
+    ss_path: str,
     strandedness: str,
     testrun: bool,
     skip_rnaseq: bool,
