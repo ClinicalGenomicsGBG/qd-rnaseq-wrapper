@@ -74,11 +74,16 @@ nextflow /apps/bio/repos/nf-core/nf-core-rnafusion-2.0.0/workflow/main.nf
 ### Input data
 * The runner takes a directory with gzipped fastq files as input. There should only be two files per sample. If there are more, please concatenate them before running the wrapper
 
+### The Wrapper
+The pipeline is meant to be initiated by the wrapper which queries SLIMS for any samples marked for QD-RNA as its secondary analysis. 
+Analysed samples are stored in a flat-text file for now in order to keep track of which samples have been analysed
+
 ### Output
 The output from both pipelines is set in the config file. From this a subset 
-of files are copied to a reporting directory (also set in config). Logs for the pipelines end up in the 
+of files is copied to a reporting directory (also set in config). Logs for the pipelines end up in the 
 output directory. One exception to this is the wrapper log, which ends up in a log dir set in the config.
 
 ## TODO
 * Allow for more than 2 input files per sample
 * Move mapping files to IGV
+* Report back to SLIMS if a samples has been analysed already or not
