@@ -28,6 +28,10 @@ from tools.helpers import (
     help="Name of sample to be used in output. Defaults to fastqdir basename",
 )
 @click.option(
+    "--ss_path",
+    help="Path to input samplesheet to use for analysis",
+)
+@click.option(
     "--strandedness",
     default="reverse",
     help="Strandedness of seq libraries",
@@ -61,6 +65,7 @@ def qd_start(
     fastqdir: str,
     outdir: str,
     sample_name: str,
+    ss_path, str,
     strandedness: str,
     testrun: bool,
     skip_rnaseq: bool,
@@ -93,13 +98,15 @@ def qd_start(
             sys.exit(1)
 
         # Make samplesheet from fastq dir
-        logger.info(f"Creating samplesheet.csv from {fastqdir}")
-        scriptpath = config.get("general", "fastq_to_ss_path")
-        try:
-            ss_path = dir_to_samplesheet(scriptpath, fastqdir, strandedness)
-        except Exception as e:
-            logger.error(e)
-            sys.exit(1)
+        if not ss_path:
+            logger.info(f"No samplesheet provided. Creating samplesheet.csv from {fastqdir}")
+            scriptpath = config.get("general", "fastq_to_ss_path")
+            try:
+                ss_path = dir_to_samplesheet(scriptpath, fastqdir, strandedness)
+            except Exception as e:
+                logger.error(e)
+                sys.exit(1)
+
     else:
         sample_name = 'testrun'
         ss_path = ''  # No samplesheet in testruns
