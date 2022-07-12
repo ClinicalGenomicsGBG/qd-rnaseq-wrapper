@@ -4,12 +4,12 @@ import rich_click as click
 
 from tools.helpers import (
     setup_logger,
-    get_config,)
+    get_config,
+    make_samplesheet,)
 from tools.slims import (
     SlimsSample,
     translate_slims_info,
-    samples_from_sec_analysis,
-    fastq_paths,)
+    samples_from_sec_analysis)
 
 @click.command()
 @click.option(
@@ -32,32 +32,32 @@ def main(logdir):
         "QD-rnaseq-wrapper_" + now.strftime("%y%m%d_%H%M%S") + ".log",
         )
     logger = setup_logger("qd-rnaseq", logfile)
-    logger.info("Starting the RNAseq pipepline wrapper.")
+
 
     ### --- Find all slims records marked for QD-RNAseq pipeline as secondary analysis --- ###
+    logger.info("Starting the RNAseq pipeline wrapper.")
     rnaseq_samples = samples_from_sec_analysis(186)
     # 29 = WOPR
     # 186 = QD-RNA
 
     ### --- Loop over each record --- ###
-    # Gather relevant information for each sample
     for sample, record in rnaseq_samples.items():
+        ### --- Collect information about the sample --- ###
         # Create a new SlimsSample object
+        logger.info(f"Extracting SLIMS information for {sample}.")
         slimsinfo = SlimsSample(sample)
-
-        # Save fastq paths for forward and reverse in separate lists
-        fastqs = fastq_paths(slimsinfo.fastqs)
-        fastq_forwards = []
-        fastq_reverses = []
-        for fastq_run in fastqs:
-            fastq_forwards.append(fastq_run[1][0])
-            fastq_reverses.append(fastq_run[1][1])
-
-        #print(f'Forwards: {" ".join(fastq_forwards)}')
-        #print(f'Reverses: {" ".join(fastq_forwards)}')
 
         # Translate the information from the SLIMS database into a dictionary
         info = translate_slims_info(record)
+
+        ### --- Generate a samplesheet from the information gathered --- ###
+        outdir = os.path.join(config.get("general", "output_dir"), sample)
+        logger.info(f"Generating samplesheet.csv for {sample} in {outdir}.")
+        os.makedirs(outdir, exist_ok=True)
+
+        strandedness = config.get("general", "strandedness")
+
+        make_samplesheet(sample, slimsinfo.fastqs, strandedness, outdir)
 
 
 if __name__ == "__main__":

@@ -6,6 +6,7 @@ import logging
 from configparser import ConfigParser
 import subprocess
 import threading
+from .slims import fastq_paths
 
 
 def setup_logger(name, log_path=None):
@@ -409,3 +410,26 @@ def report_results(finished_pipes: list, outdir: str, sample_name: str, config) 
                         copied_files[pipeline] = 1
 
     return copied_files
+
+def make_samplesheet(sample, fastqs, strandedness: str, outdir: str) -> str:
+    """
+    Takes a list of fastq files and a strandedness and creates a samplesheet.csv
+    file with the correct information.
+
+    :param sample: Name of the sample
+    :param fastqs: Object with fastq file paths
+    :param strandedness: Strandedness of the library
+    :param outfile: Path to the output file
+    :return: Path to the samplesheet.csv file
+    """
+    # Get all fastq paths
+    fastqs = fastq_paths(fastqs)
+
+    # Path to samplesheet.csv
+    ss_path = os.path.join(outdir, "samplesheet.csv")
+
+    # Create the samplesheet
+    with open(ss_path, 'w') as f:
+        f.write("sample,fastq_1,fastq_2,strandedness\n")
+        for fastq in fastqs:
+            f.write(f"{sample},{fastq[1][0]},{fastq[1][1]},{strandedness}\n")
