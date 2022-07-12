@@ -390,6 +390,8 @@ def report_results(finished_pipes: list, outdir: str, sample_name: str, config) 
                         destination = os.path.join(
                             igv_dir,
                             os.path.basename(file))
+                        os.makedirs(os.path.dirname(destination),
+                                    exist_ok=True)
 
                         shutil.copy(file, destination)
 
