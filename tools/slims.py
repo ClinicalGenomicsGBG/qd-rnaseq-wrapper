@@ -1,5 +1,6 @@
 import os
 import json
+from datetime import datetime
 
 from slims.slims import Slims
 from slims.criteria import is_one_of, equals, conjunction
@@ -195,9 +196,6 @@ def fastq_paths(fastq_objects) -> list:
     """
     reads_fastq_pairs = []  # NOTE: All reads and fastq_paths tuple pairs
     for fastq_object in fastq_objects:
-        # Grab objects run_tag
-        remote_run_tag = fastq_object.cntn_cstm_runTag.value
-
         demuxer_info_json = json.loads(fastq_object.cntn_cstm_demuxerSampleResult.value)
         if not demuxer_info_json:
             raise MissingDemuxerInfoError(f'A fastq object without demuxer info was found: {sample_name}')
@@ -211,3 +209,37 @@ def fastq_paths(fastq_objects) -> list:
 
         reads_fastq_pairs.append((reads, fastq_paths))  # Tuple
     return reads_fastq_pairs
+
+def find_runtag_from_fastqs(fastq_objects) -> str:
+    """
+    Takes a slims object with fastq content and returns the run tag. This is sort of hacky,
+    and it would be better if this information was directly available in the SlimsObject
+
+    :param fastq_objects: slims object with fastq content
+    :return: Run tag (YYMMDD_flowcallID)
+    """
+    # First get all runtags associated with all fastq files and store in list
+    runtag_list = []
+    for fastq_object in fastq_objects:
+        # Grab objects run_tag
+        remote_run_tag = fastq_object.cntn_cstm_runTag.value
+        runtag_list.append(remote_run_tag)
+
+    # Loop over the list, and figure out which is the most recent runtag
+    runtag_newest = None # Initialise a newest object to compare against
+
+    for runtag in runtag_list:
+        runtag_date = runtag.split('_')[0]
+        runtag_date_dt = datetime.strptime(runtag_date, "%y%m%d")
+
+        if runtag_newest == None:
+            runtag_newest = runtag
+        else:
+            runtag_newest_dt = datetime.strptime(runtag_newest.split('_')[0], "%y%m%d")
+            if runtag_date_dt > runtag_newest_dt:
+                runtag_newest = runtag
+
+    if runtag_newest == None:
+        raise Exception('No run tag found in fastq objects')
+    else:
+        return runtag_newest

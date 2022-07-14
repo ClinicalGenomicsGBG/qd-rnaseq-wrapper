@@ -9,7 +9,8 @@ from tools.helpers import (
 from tools.slims import (
     SlimsSample,
     translate_slims_info,
-    samples_from_sec_analysis)
+    samples_from_sec_analysis,
+    find_runtag_from_fastqs)
 
 @click.command()
 @click.option(
@@ -49,6 +50,15 @@ def main(logdir):
 
         # Translate the information from the SLIMS database into a dictionary
         info = translate_slims_info(record)
+
+        # Get the runtag for the sample
+        try:
+            runtag = find_runtag_from_fastqs(slimsinfo.fastqs)
+            logger.info(f"Setting {runtag} as run tag for sample {sample}.")
+        except Exception as e:
+            logger.error(e)
+            sys.exit(1)
+            # TODO, this should mark this sample as failed, and send an email. Not break the whole thing
 
         ### --- Generate a samplesheet from the information gathered --- ###
         outdir = os.path.join(config.get("general", "output_dir"), sample)
