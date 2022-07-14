@@ -3,18 +3,53 @@ import sys
 import uuid
 import shutil
 import datetime
+import threading
 import rich_click as click
 
+from runner import qd_start
 
 from tools.helpers import (
     setup_logger,
     get_config,
-    make_samplesheet,)
+    make_samplesheet)
 from tools.slims import (
     SlimsSample,
     translate_slims_info,
     samples_from_sec_analysis,
     find_runtag_from_fastqs)
+
+def start_runner_threads(sample_dict: dict, logger) -> list:
+    """
+    Takes a dict containing sample names and samlesheet paths and starts an instance
+    of the runner in a separate threads.
+
+    :param sample_dict: Dict of samples with their samplesheet paths
+    :param logger: Logger object to write logs to
+    :return: List of finished samples
+    """
+    threads = []
+    for sample_id, ss_path in sample_dict.items():
+        qd_start_kwargs = {'sample_name': sample_id, 'ss_path': ss_path, 'logger': logger}
+
+        threads.append(
+            threading.Thread(
+                target=qd_start,
+                kwargs=qd_start_kwargs,
+                name=sample_id.split('_')[0],
+            )
+        )
+
+    # Start all samples in parallel
+    finished_samples = []
+    for t in threads:
+        logger.info(f"{t.name} - Starting the runner")
+        t.start()
+    for u in threads:  # Waits for all threads to finish
+        u.join()
+        logger.info(f"{u.name}- Completed the runner")
+        finished_samples.append(u.name)
+
+    return finished_samples
 
 @click.command()
 @click.option(
@@ -64,10 +99,11 @@ def main(logdir: str, cleanup: bool):
         sys.exit(1)
 
     ### --- Loop over each record --- ###
+    runner_samples = {} # Store all samplesheet paths per sample in a dict for later use
     for sample, record in rnaseq_samples.items():
         ### --- Collect information about the sample --- ###
         # Create a new SlimsSample object
-        logger.info(f"Extracting SLIMS information for {sample}.")
+        logger.info(f"{sample} - Extracting SLIMS information.")
         slimsinfo = SlimsSample(sample)
 
         # Translate the information from the SLIMS database into a dictionary
@@ -76,7 +112,7 @@ def main(logdir: str, cleanup: bool):
         # Get the runtag for the sample, combine with sample name
         try:
             runtag = find_runtag_from_fastqs(slimsinfo.fastqs)
-            logger.info(f"Setting {runtag} as run tag for sample {sample}.")
+            logger.info(f"{sample} - Setting {runtag} as run tag.")
             sample_id = f"{sample}_{runtag}"
         except Exception as e:
             logger.error(e)
@@ -85,17 +121,24 @@ def main(logdir: str, cleanup: bool):
 
         ### --- Generate a samplesheet from the information gathered --- ###
         outdir = os.path.join(config.get("general", "output_dir"), sample_id)
-        logger.info(f"Generating samplesheet.csv for {sample} in {outdir}.")
+        logger.info(f"{sample} - Generating samplesheet.csv in {outdir}.")
         os.makedirs(outdir, exist_ok=True)
 
         strandedness = config.get("general", "strandedness")
 
-        make_samplesheet(sample_id, slimsinfo.fastqs, strandedness, outdir)
+        sample_ss_path = make_samplesheet(sample_id, slimsinfo.fastqs, strandedness, outdir)
+        runner_samples[sample_id] = sample_ss_path
 
-        ### --- Clean up temporary files --- ###
-        if cleanup:
-            logger.info(f"Cleaning up temporary files in {temp_dir}")
-            shutil.rmtree(temp_dir)
+    ### --- Start a runner for each sample --- ###
+    completed_samples = start_runner_threads(runner_samples, logger)
+
+    ### --- Clean up temporary files --- ###
+    if cleanup:
+        logger.info(f"Cleaning up temporary files in {temp_dir}")
+        shutil.rmtree(temp_dir)
+
+    ### --- Completed wrapper --- ###
+    logger.info(f"Completed the QD-RNAseq wrapper for {len(completed_samples)} sample(s).")
 
 if __name__ == "__main__":
     main()
