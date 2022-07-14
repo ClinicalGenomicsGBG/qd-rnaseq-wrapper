@@ -1,11 +1,13 @@
 import os
 import sys
+import csv
 import glob
 import shutil
 import logging
 from configparser import ConfigParser
 import subprocess
 import threading
+from .slims import fastq_paths
 
 
 def setup_logger(name, log_path=None):
@@ -302,12 +304,13 @@ def build_rnafusion_command(
     return {"nf-core/rnafusion": rnafusion_command}
 
 
-def start_pipe_threads(pipe_dict: dict, logger) -> list:
+def start_pipe_threads(sample_name:str, pipe_dict: dict, logger) -> list:
     """
     Takes a dict where keys are pipeline names and values are a
     list containing all parts of a command, and starts them in a
     separate thread using subprocess.call
 
+    :param sample_name: Name of the sample, for logging purposes
     :param pipe_dict: Dict of lists where each one is a command to run
     :param logger: Logger object to write logs to
     """
@@ -329,11 +332,11 @@ def start_pipe_threads(pipe_dict: dict, logger) -> list:
     # Start both pipelines in parallel
     finished_pipes = []
     for t in threads:
-        logger.info(f"Starting the {t.name} pipeline")
+        logger.info(f"{sample_name.split('_')[0]} - Starting the {t.name} pipeline")
         t.start()
     for u in threads:  # Waits for all threads to finish
         u.join()
-        logger.info(f"Completed the {u.name} pipeline")
+        logger.info(f"{sample_name.split('_')[0]} - Completed the {u.name} pipeline")
         finished_pipes.append(u.name)
 
     return finished_pipes
@@ -409,3 +412,43 @@ def report_results(finished_pipes: list, outdir: str, sample_name: str, config) 
                         copied_files[pipeline] = 1
 
     return copied_files
+
+def make_samplesheet(sample, fastqs, strandedness: str, outdir: str) -> str:
+    """
+    Takes a list of fastq files and a strandedness and creates a samplesheet.csv
+    file with the correct information.
+
+    :param sample: Name of the sample
+    :param fastqs: Object with fastq file paths
+    :param strandedness: Strandedness of the library
+    :param outfile: Path to the output file
+    :return: Path to the samplesheet.csv file
+    """
+    # Get all fastq paths
+    fastqs = fastq_paths(fastqs)
+
+    # Path to samplesheet.csv
+    ss_path = os.path.join(outdir, "samplesheet.csv")
+
+    # Create the samplesheet
+    with open(ss_path, 'w') as f:
+        f.write("sample,fastq_1,fastq_2,strandedness\n")
+        for fastq in fastqs:
+            f.write(f"{sample},{fastq[1][0]},{fastq[1][1]},{strandedness}\n")
+
+    return ss_path
+
+def read_previous_samples_file(config) -> list:
+    """
+    From the config, read the file containing the previous samples and return a
+    list of all samples.
+
+    :param config: Configparser object with configurations
+    :return: List of sample names
+    """
+    previous_samples_file = config.get("general", "previously_analysed")
+
+    with open(previous_samples_file, "r") as prev:
+        previous_samples = [line.rstrip() for line in prev]
+
+    return previous_samples

@@ -13,8 +13,11 @@ from tools.helpers import (
     report_results,
 )
 
+@click.group()
+def cli():
+    pass
 
-@click.command()
+@cli.command()
 @click.option(
     "--fastqdir",
     help="Path to input directory of fastq files",
@@ -28,8 +31,11 @@ from tools.helpers import (
     help="Name of sample to be used in output. Defaults to fastqdir basename",
 )
 @click.option(
+    "--ss_path",
+    help="Path to input samplesheet to use for analysis",
+)
+@click.option(
     "--strandedness",
-    default="reverse",
     help="Strandedness of seq libraries",
 )
 @click.option(
@@ -57,49 +63,76 @@ from tools.helpers import (
     is_flag=True,
     help="Skips moving output data to reporting folder",
 )
+def cli_qd_start(
+    fastqdir,
+    outdir,
+    sample_name,
+    ss_path,
+    strandedness,
+    testrun,
+    skip_rnaseq,
+    skip_rnafusion,
+    save_reference,
+    skip_report,
+):
+    qd_start(
+        fastqdir=fastqdir,
+        outdir=outdir,
+        sample_name=sample_name,
+        ss_path=ss_path,
+        strandedness=strandedness,
+        testrun=testrun,
+        skip_rnaseq=skip_rnaseq,
+        skip_rnafusion=skip_rnafusion,
+        save_reference=save_reference,
+        skip_report=skip_report)
+
 def qd_start(
-    fastqdir: str,
-    outdir: str,
-    sample_name: str,
-    strandedness: str,
-    testrun: bool,
-    skip_rnaseq: bool,
-    skip_rnafusion: bool,
-    save_reference: bool,
-    skip_report: bool,
+    fastqdir: str = None,
+    outdir: str = None,
+    sample_name: str = None,
+    ss_path: str = None,
+    strandedness: str = None,
+    testrun: bool = False,
+    skip_rnaseq: bool = False,
+    skip_rnafusion: bool = False,
+    save_reference: bool = False,
+    skip_report: bool = False,
+    logger = None,
 ) -> None:
 
     # Read in the config
     config = get_config()
 
     # Set up the logger function
-    now = datetime.datetime.now()
-    logdir = config.get("general", "wrapper_log_dir")
-    os.makedirs(logdir, exist_ok=True)
-    logfile = os.path.join(
-        logdir,
-        "QD-rnaseq-wrapper_" + now.strftime("%y%m%d_%H%M%S") + ".log",
-    )
-    logger = setup_logger("qd-rnaseq", logfile)
-    logger.info("Starting the RNAseq pipepline wrapper.")
+    if not logger:
+        now = datetime.datetime.now()
+        logdir = config.get("general", "wrapper_log_dir")
+        os.makedirs(logdir, exist_ok=True)
+        logfile = os.path.join(
+            logdir,
+            "QD-rnaseq-wrapper_" + now.strftime("%y%m%d_%H%M%S") + ".log",
+        )
+        logger = setup_logger("qd-rnaseq", logfile)
 
     # If testrun, skip fastq handling
     if not testrun:
-        # Make sure fastqdir looks good
-        try:
-            sanitize_fastqdir(fastqdir)
-        except Exception as e:
-            logger.error(e)
+        #Sanity check
+        if fastqdir == None and ss_path == None:
+            logger.error("Please provide either a fastqdir or a samplesheet")
             sys.exit(1)
 
         # Make samplesheet from fastq dir
-        logger.info(f"Creating samplesheet.csv from {fastqdir}")
-        scriptpath = config.get("general", "fastq_to_ss_path")
-        try:
-            ss_path = dir_to_samplesheet(scriptpath, fastqdir, strandedness)
-        except Exception as e:
-            logger.error(e)
-            sys.exit(1)
+        if not ss_path:
+            logger.info(f"No samplesheet provided. Creating samplesheet.csv from {fastqdir}")
+            scriptpath = config.get("general", "fastq_to_ss_path")
+            try:
+                sanitize_fastqdir(fastqdir)
+                ss_path = dir_to_samplesheet(scriptpath, fastqdir, strandedness)
+            except Exception as e:
+                logger.error(e)
+                sys.exit(1)
+
     else:
         sample_name = 'testrun'
         ss_path = ''  # No samplesheet in testruns
@@ -110,14 +143,8 @@ def qd_start(
         sample_name = os.path.basename(os.path.normpath(fastqdir))
     if outdir is None:
         outdir = os.path.join(config.get("general", "output_dir"), sample_name)
+        os.makedirs(outdir, exist_ok=True)
 
-    os.makedirs(outdir, exist_ok=True)
-    logger.info(f"Output directory: {outdir}")
-
-    # Get the name of the sample
-    # TODO, this should be read from the samplesheet
-    # and then looped over to run the pipelines
-    logger.info(f"Processing sample: {sample_name}")
 
     # Empty list for storing which pipes to start
     pipe_commands = {}
@@ -146,14 +173,13 @@ def qd_start(
         pipe_commands = pipe_commands | rnafusion_command
 
     # Start the pipelines in separate threads
-    finished_pipes = start_pipe_threads(pipe_commands, logger)
+    finished_pipes = start_pipe_threads(sample_name, pipe_commands, logger)
 
     # Move selected files to report dir
     if skip_report:
         logger.info("Reporting disabled, skipping copy to report dir")
     else:
         report_dir = os.path.join(config.get("general", "report_dir"), sample_name)
-        logger.info(f"Moving files to {report_dir}")
         transferred_files = report_results(finished_pipes, outdir, sample_name, config)
         for pipe, transfers in transferred_files.items():
             logger.info(f"Moved {transfers} files generated by {pipe}")
@@ -162,4 +188,4 @@ def qd_start(
     logger.info("Completed the RNAseq wrapper workflow")
 
 if __name__ == "__main__":
-    qd_start()
+    cli_qd_start()

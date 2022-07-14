@@ -8,3 +8,6 @@ conda-env/qd-rnaseq/
 ## Nextflow
 .nextflow*
 work/
+
+## Passwords
+passwords.py
