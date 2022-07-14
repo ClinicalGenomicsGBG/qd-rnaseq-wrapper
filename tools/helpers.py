@@ -1,5 +1,6 @@
 import os
 import sys
+import csv
 import glob
 import shutil
 import logging
@@ -436,3 +437,18 @@ def make_samplesheet(sample, fastqs, strandedness: str, outdir: str) -> str:
             f.write(f"{sample},{fastq[1][0]},{fastq[1][1]},{strandedness}\n")
 
     return ss_path
+
+def read_previous_samples_file(config) -> list:
+    """
+    From the config, read the file containing the previous samples and return a
+    list of all samples.
+
+    :param config: Configparser object with configurations
+    :return: List of sample names
+    """
+    previous_samples_file = config.get("general", "previously_analysed")
+
+    with open(previous_samples_file, "r") as prev:
+        previous_samples = [line.rstrip() for line in prev]
+
+    return previous_samples
