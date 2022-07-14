@@ -144,7 +144,6 @@ def qd_start(
     if outdir is None:
         outdir = os.path.join(config.get("general", "output_dir"), sample_name)
         os.makedirs(outdir, exist_ok=True)
-        logger.info(f"Output directory: {outdir}")
 
 
     # Empty list for storing which pipes to start
@@ -174,7 +173,7 @@ def qd_start(
         pipe_commands = pipe_commands | rnafusion_command
 
     # Start the pipelines in separate threads
-    finished_pipes = start_pipe_threads(pipe_commands, logger)
+    finished_pipes = start_pipe_threads(sample_name, pipe_commands, logger)
 
     # Move selected files to report dir
     if skip_report:
@@ -190,4 +189,3 @@ def qd_start(
 
 if __name__ == "__main__":
     cli_qd_start()
-    
