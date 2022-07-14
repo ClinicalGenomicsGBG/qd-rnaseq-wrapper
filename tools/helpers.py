@@ -303,12 +303,13 @@ def build_rnafusion_command(
     return {"nf-core/rnafusion": rnafusion_command}
 
 
-def start_pipe_threads(pipe_dict: dict, logger) -> list:
+def start_pipe_threads(sample_name:str, pipe_dict: dict, logger) -> list:
     """
     Takes a dict where keys are pipeline names and values are a
     list containing all parts of a command, and starts them in a
     separate thread using subprocess.call
 
+    :param sample_name: Name of the sample, for logging purposes
     :param pipe_dict: Dict of lists where each one is a command to run
     :param logger: Logger object to write logs to
     """
@@ -330,11 +331,11 @@ def start_pipe_threads(pipe_dict: dict, logger) -> list:
     # Start both pipelines in parallel
     finished_pipes = []
     for t in threads:
-        logger.info(f"Starting the {t.name} pipeline")
+        logger.info(f"{sample_name.split('_')[0]} - Starting the {t.name} pipeline")
         t.start()
     for u in threads:  # Waits for all threads to finish
         u.join()
-        logger.info(f"Completed the {u.name} pipeline")
+        logger.info(f"{sample_name.split('_')[0]} - Completed the {u.name} pipeline")
         finished_pipes.append(u.name)
 
     return finished_pipes
