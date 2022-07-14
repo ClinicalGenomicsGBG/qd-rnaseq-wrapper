@@ -30,7 +30,7 @@ def main(logdir: str, cleanup: bool):
     ### --- Read in the config --- ###
     config = get_config()
 
-    #### ------- Set up the logger function --- ###
+    #### --- Set up the logger function --- ###
     now = datetime.datetime.now()
     if not logdir:
         logdir = config.get("general", "wrapper_log_dir")
@@ -42,7 +42,6 @@ def main(logdir: str, cleanup: bool):
         "QD-rnaseq-wrapper_" + now.strftime("%y%m%d_%H%M%S") + ".log",
         )
     logger = setup_logger("qd-rnaseq", logfile)
-
 
     ### --- Find all slims records marked for QD-RNAseq pipeline as secondary analysis --- ###
     rnaseq_samples = samples_from_sec_analysis(186)
@@ -83,7 +82,6 @@ def main(logdir: str, cleanup: bool):
             logger.error(e)
             sys.exit(1)
             # TODO, this should mark this sample as failed, and send an email. Not break the whole thing
-
 
         ### --- Generate a samplesheet from the information gathered --- ###
         outdir = os.path.join(config.get("general", "output_dir"), sample_id)
