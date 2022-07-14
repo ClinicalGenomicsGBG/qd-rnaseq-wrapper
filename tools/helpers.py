@@ -433,3 +433,5 @@ def make_samplesheet(sample, fastqs, strandedness: str, outdir: str) -> str:
         f.write("sample,fastq_1,fastq_2,strandedness\n")
         for fastq in fastqs:
             f.write(f"{sample},{fastq[1][0]},{fastq[1][1]},{strandedness}\n")
+
+    return ss_path
