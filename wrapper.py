@@ -45,10 +45,13 @@ def main(logdir: str, cleanup: bool):
 
 
     ### --- Find all slims records marked for QD-RNAseq pipeline as secondary analysis --- ###
-    logger.info("Starting the RNAseq pipeline wrapper.")
     rnaseq_samples = samples_from_sec_analysis(186)
     # 29 = WOPR
     # 186 = QD-RNA
+    if len(rnaseq_samples) > 0:
+        logger.info(f"Found {len(rnaseq_samples)} sample(s) marked for QD-RNAseq pipeline. Starting the wrapper.")
+    else:
+        sys.exit(0)
 
     ### --- Make a temp dir for current invocation of the wrapper --- ###
     random_uuid = str(uuid.uuid4().hex)
