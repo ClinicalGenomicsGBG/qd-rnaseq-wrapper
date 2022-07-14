@@ -87,17 +87,6 @@ def main(logdir: str, cleanup: bool):
     else:
         sys.exit(0)
 
-    ### --- Make a temp dir for current invocation of the wrapper --- ###
-    random_uuid = str(uuid.uuid4().hex)
-    temp_dir = os.path.join(config.get("general", "temp_dir"), random_uuid)
-    temp_dir = '/tmp/qd-testing' #TODO, remove this line
-    try:
-        os.makedirs(temp_dir)
-        logger.info(f"Creating a temp dir for files in {temp_dir}")
-    except Exception:
-        logger.error(f"Could not create temp directory: {temp_dir}")
-        sys.exit(1)
-
     ### --- Loop over each record --- ###
     runner_samples = {} # Store all samplesheet paths per sample in a dict for later use
     for sample, record in rnaseq_samples.items():
@@ -132,10 +121,6 @@ def main(logdir: str, cleanup: bool):
     ### --- Start a runner for each sample --- ###
     completed_samples = start_runner_threads(runner_samples, logger)
 
-    ### --- Clean up temporary files --- ###
-    if cleanup:
-        logger.info(f"Cleaning up temporary files in {temp_dir}")
-        shutil.rmtree(temp_dir)
 
     ### --- Completed wrapper --- ###
     logger.info(f"Completed the QD-RNAseq wrapper for {len(completed_samples)} sample(s).")
