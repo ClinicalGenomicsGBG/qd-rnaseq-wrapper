@@ -13,8 +13,11 @@ from tools.helpers import (
     report_results,
 )
 
+@click.group()
+def cli():
+    pass
 
-@click.command()
+@cli.command()
 @click.option(
     "--fastqdir",
     help="Path to input directory of fastq files",
@@ -33,7 +36,6 @@ from tools.helpers import (
 )
 @click.option(
     "--strandedness",
-    default="reverse",
     help="Strandedness of seq libraries",
 )
 @click.option(
@@ -61,17 +63,41 @@ from tools.helpers import (
     is_flag=True,
     help="Skips moving output data to reporting folder",
 )
+def cli_qd_start(
+    fastqdir,
+    outdir,
+    sample_name,
+    ss_path,
+    strandedness,
+    testrun,
+    skip_rnaseq,
+    skip_rnafusion,
+    save_reference,
+    skip_report,
+):
+    qd_start(
+        fastqdir=fastqdir,
+        outdir=outdir,
+        sample_name=sample_name,
+        ss_path=ss_path,
+        strandedness=strandedness,
+        testrun=testrun,
+        skip_rnaseq=skip_rnaseq,
+        skip_rnafusion=skip_rnafusion,
+        save_reference=save_reference,
+        skip_report=skip_report)
+
 def qd_start(
-    fastqdir: str,
-    outdir: str,
-    sample_name: str,
-    ss_path: str,
-    strandedness: str,
-    testrun: bool,
-    skip_rnaseq: bool,
-    skip_rnafusion: bool,
-    save_reference: bool,
-    skip_report: bool,
+    fastqdir: str = None,
+    outdir: str = None,
+    sample_name: str = None,
+    ss_path: str = None,
+    strandedness: str = None,
+    testrun: bool = False,
+    skip_rnaseq: bool = False,
+    skip_rnafusion: bool = False,
+    save_reference: bool = False,
+    skip_report: bool = False,
 ) -> None:
 
     # Read in the config
@@ -90,6 +116,10 @@ def qd_start(
 
     # If testrun, skip fastq handling
     if not testrun:
+        #Sanity check
+        if fastqdir == None and ss_path == None:
+            logger.error("Please provide either a fastqdir or a samplesheet")
+            sys.exit(1)
         # Make sure fastqdir looks good
         try:
             sanitize_fastqdir(fastqdir)
@@ -169,4 +199,5 @@ def qd_start(
     logger.info("Completed the RNAseq wrapper workflow")
 
 if __name__ == "__main__":
-    qd_start()
+    #qd_start()
+    cli()
