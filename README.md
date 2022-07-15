@@ -53,6 +53,10 @@ using the env variable `$NXF_SINGULARITY_CACHEDIR`. This is best to have set in 
 Dependencies in the form of reference data and genome index was built using the --build_references flag. 
 In order to be able to build all dependencies, a [COSMIC](https://cancer.sanger.ac.uk/cosmic/) account is required.
 
+In the past, there has been issues with the 'STARFUSION_BUILD' step due to the EBI FTP server being overloaded.
+Hopefully this gets fixed in future releases of the rnafusion pipeline, but it is sometimes needed to restart
+the build command using the `-resume` flag ac ouple of times. 
+
 **Code for installation**
 
 ```
