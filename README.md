@@ -21,7 +21,7 @@ Code for installation
 ```
 export NXF_SINGULARITY_CACHEDIR="/apps/bio/dependencies/nf-core/singularities"
 cd /apps/bio/repos/nf-core/nf-core-rnaseq-X.Y/
-nf-core download rnaseq --container singularity
+nf-core download rnaseq --container singularity --singularity-cache-only
 ```
 
 **Pre-downloaded references**
@@ -53,20 +53,24 @@ using the env variable `$NXF_SINGULARITY_CACHEDIR`. This is best to have set in 
 Dependencies in the form of reference data and genome index was built using the --build_references flag. 
 In order to be able to build all dependencies, a [COSMIC](https://cancer.sanger.ac.uk/cosmic/) account is required.
 
+In the past, there has been issues with the 'STARFUSION_BUILD' step due to the EBI FTP server being overloaded.
+Hopefully this gets fixed in future releases of the rnafusion pipeline, but it is sometimes needed to restart
+the build command using the `-resume` flag ac ouple of times. 
+
 **Code for installation**
 
 ```
 export NXF_SINGULARITY_CACHEDIR="/apps/bio/dependencies/nf-core/singularities"
 cd /apps/bio/repos/nf-core/nf-core-rnafusion-X.Y.Z/
-nf-core download rnafusion --container singularity
-nextflow /apps/bio/repos/nf-core/nf-core-rnafusion-2.0.0/workflow/main.nf 
+nf-core download rnafusion --container singularity --singularity-cache-only
+nextflow /apps/bio/repos/nf-core/nf-core-rnafusion-X.Y.Z/workflow/main.nf 
     -c /apps/bio/repos/nf-core-configs/conf/medair.config 
     -profile singularity,byss 
     --build_references 
     --all
     --genomes_base /apps/bio/dependencies/nf-core/nf-core-rnafusion-X.Y.Z
     --outdir /apps/bio/dependencies/nf-core/nf-core-rnafusion-X.Y.Z
-    ---cosmic_username <username>
+    --cosmic_username <username>
     --cosmic_passwd <password>  
 ```
 
