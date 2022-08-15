@@ -12,6 +12,10 @@ from .slims import find_fastq_paths
 
 def setup_logger(name, log_path=None):
     """Enables the logging to be setup correctly"""
+    # Remove any existing logging, from SLIMS package for instance.
+    for handler in logging.root.handlers:
+        logging.root.removeHandler(handler)
+
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
 
