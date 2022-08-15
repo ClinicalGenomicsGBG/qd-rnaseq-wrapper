@@ -186,16 +186,16 @@ def samples_from_sec_analysis(tag: int) -> dict:
     return samples
 
 
-def find_fastq_paths(fastq_objects) -> list:
+def find_fastq_paths(fastq_records) -> list:
     """
     Takes a slims object with fastq content and returns a list of paths to the fastq files
     with the number of reads per pair
 
-    :param fastq_objects: slims object with fastq content
+    :param fastq_records: slims object with fastq content
     :return: list of fastq objects with the number of reads and a tuple of the paths to the fastq files
     """
     reads_fastq_pairs = []  # NOTE: All reads and fastq_paths tuple pairs
-    for fastq_object in fastq_objects:
+    for fastq_object in fastq_records:
         demuxer_info_json = json.loads(fastq_object.cntn_cstm_demuxerSampleResult.value)
         if not demuxer_info_json:
             raise MissingDemuxerInfoError(f'A fastq object without demuxer info was found: {sample_name}')
