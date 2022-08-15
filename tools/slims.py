@@ -167,15 +167,15 @@ def translate_slims_info(record) -> dict:
     }
     return master
 
-def samples_from_sec_analysis(tag: int) -> dict:
+def samples_from_sec_analysis(primary_key: int) -> dict:
     """
     Fetch all records from slims given a secondary analysis tag
 
-    :param tag: Integer tag of secondary analysis
+    :param primary_key: Primary key integer of secondary analysis
     :return: Dictionary of sample names and their corresponding slims records
     """
 
-    records = slims.fetch("Content", equals("cntn_cstm_secondaryAnalysis", tag))
+    records = slims.fetch("Content", equals("cntn_cstm_secondaryAnalysis", primary_key))
 
     samples = {}
 
