@@ -6,7 +6,7 @@ from tools.helpers import (
     setup_logger,
     get_config,
     dir_to_samplesheet,
-    sanitize_fastqdir,
+    verify_fastqdir,
     build_rnaseq_command,
     build_rnafusion_command,
     start_pipe_threads,
@@ -127,7 +127,7 @@ def qd_start(
             logger.info(f"No samplesheet provided. Creating samplesheet.csv from {fastqdir}")
             scriptpath = config.get("general", "fastq_to_ss_path")
             try:
-                sanitize_fastqdir(fastqdir)
+                verify_fastqdir(fastqdir)
                 ss_path = dir_to_samplesheet(scriptpath, fastqdir, strandedness)
             except Exception as e:
                 logger.error(e)

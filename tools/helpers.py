@@ -83,7 +83,7 @@ def dir_to_samplesheet(
     return ss_path
 
 
-def sanitize_fastqdir(fastqdir: str) -> None:
+def verify_fastqdir(fastqdir: str) -> None:
     """
     Checks all files in a given fastq dir that assumptions about naming is met.
     For now this only checks file endings, but could be expanded to check for
