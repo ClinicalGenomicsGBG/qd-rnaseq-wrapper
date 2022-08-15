@@ -7,7 +7,7 @@ import logging
 from configparser import ConfigParser
 import subprocess
 import threading
-from .slims import fastq_paths
+from .slims import find_fastq_paths
 
 
 def setup_logger(name, log_path=None):
@@ -425,7 +425,7 @@ def make_samplesheet(sample, fastqs, strandedness: str, outdir: str) -> str:
     :return: Path to the samplesheet.csv file
     """
     # Get all fastq paths
-    fastqs = fastq_paths(fastqs)
+    fastqs = find_fastq_paths(fastqs)
 
     # Path to samplesheet.csv
     ss_path = os.path.join(outdir, "samplesheet.csv")

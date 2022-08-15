@@ -186,7 +186,7 @@ def samples_from_sec_analysis(tag: int) -> dict:
     return samples
 
 
-def fastq_paths(fastq_objects) -> list:
+def find_fastq_paths(fastq_objects) -> list:
     """
     Takes a slims object with fastq content and returns a list of paths to the fastq files
     with the number of reads per pair
