@@ -180,7 +180,7 @@ def samples_from_sec_analysis(primary_key: int) -> dict:
     samples = {}
 
     for record in records:
-        sample_name = (record.column('cntn_id').value)
+        sample_name = record.column('cntn_id').value
         samples[sample_name] = record
 
     return samples

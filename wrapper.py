@@ -17,6 +17,7 @@ from tools.slims import (
     samples_from_sec_analysis,
     find_runtag_from_fastqs)
 
+
 def start_runner_threads(sample_dict: dict, logger) -> list:
     """
     Takes a dict containing sample names and samlesheet paths and starts an instance
@@ -88,7 +89,7 @@ def main(logdir: str, cleanup: bool):
     # Skip the sample if it has previously been analysed
     # This also gathers info from SLIMS about the sample
     # This is a bit cumbersome but done as SLIMS doesn't have the run tag easily queryable right now
-    for sample in list(rnaseq_samples.keys()):
+    for sample in rnaseq_samples.keys():
         # Get the runtag for the sample, combine with sample name
         try:
             slimsinfo = SlimsSample(sample)
