@@ -9,7 +9,7 @@ from slims.content import Status
 import passwords
 
 # Initial set up of the SLIMS instance
-instance = 'wopr_query'
+instance = 'qdRNAseq_query'
 url = passwords.slims.url
 user = passwords.slims.user
 password = passwords.slims.password
